@@ -116,12 +116,15 @@ class Program
             AnsiConsole.Prompt(new SelectionPrompt<Anime>()
             .AddChoices(provider switch
             {
-                ListProvider.MyAnimeList => from search in (await Task.WhenAll(
+                ListProvider.Shinden => throw new NotImplementedException(),
+                ListProvider.MyAnimeList or _ => (from search in (await Task.WhenAll(
                                                 from query in queries
                                                 select malClient.Anime().WithName(query).Find()))
                                             from series in search.Data
-                                            select series,
-                _ => throw new NotImplementedException()
+                                            group series by series.Id into grouped
+                                            orderby grouped.Count() descending
+                                            from series in grouped
+                                            select series).DistinctBy(series => series.Id),
             }));
         }, providerOption, queryArgument);
 
