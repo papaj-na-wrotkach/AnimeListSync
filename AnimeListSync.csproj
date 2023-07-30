@@ -6,6 +6,7 @@
     <LangVersion>11</LangVersion>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
