@@ -41,7 +41,7 @@ public class MyAnimeListConfig {
 	private string? clientId;
 	public string ClientId { get => clientId ??= AuthUtil.GetMalClientId(); set => clientId = value; }
 	private string? accessToken;
-	public string AccessToken { get => accessToken ??= AuthUtil.GetMalToken(ClientId).Result; }
+	public string AccessToken { get => accessToken ??= AuthUtil.GetMalToken(ClientId).Result; set => accessToken = value; }
 
 	public void Deconstruct(out string clientId, out string accessToken) {
 		clientId = ClientId;

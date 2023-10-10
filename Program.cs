@@ -36,7 +36,7 @@ class Program
 			name: "provider",
 			description: "List provider to use")
 		{
-			Arity = ArgumentArity.ExactlyOne
+			Arity = ArgumentArity.ZeroOrOne,
 		};
 
 		var queryArgument = new Argument<List<string>>(
@@ -55,13 +55,15 @@ class Program
 
 		authCommand.SetHandler((ListProvider provider) =>
 		{
+			Logger.Info($"Authenticating with {provider}");
 			switch (provider)
 			{
-				case ListProvider.MyAnimeList:
-					MalClient.SetAuth(config.MyAnimeList);
-					break;
 				case ListProvider.Shinden:
 					throw new NotImplementedException();
+				case ListProvider.MyAnimeList or _:
+					config.MyAnimeList = new();
+					MalClient.SetAuth(config.MyAnimeList);
+					break;
 			}
 		}, providerArgument);
 
@@ -75,8 +77,15 @@ class Program
 
 		searchCommand.SetHandler(async (ListProvider provider, List<string> queries) =>
 		{
-			IEnumerable<Anime> choices; 
-			
+			IEnumerable<Anime> choices;
+			Logger.Info($"Searching using {provider}");
+			Logger.Trace("Search keywords: [[");
+			foreach (var keyword in queries)
+			{
+				Logger.Trace($"\t{keyword},");
+			}
+			Logger.Trace("]]");
+
 			switch (provider)
 			{
 				case ListProvider.Shinden: throw new NotImplementedException();
@@ -91,7 +100,8 @@ class Program
 				
 			};
 
-			AnsiConsole.Prompt(new SelectionPrompt<Anime>().AddChoices(choices));
+			var choice = AnsiConsole.Prompt(new SelectionPrompt<Anime>().AddChoices(choices));
+			Logger.Info($"Choose: {choice}");
 		}, providerOption, queryArgument);
 
 		var rootCommand = new RootCommand(
