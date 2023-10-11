@@ -18,7 +18,7 @@ class Program
 {
 	private static readonly Config config = Config.FromFile();
 	public static MalClient MalClient { get; set; } = new ();
-
+    public static readonly Database Db = new();
 	static async Task Main(params string[] args)
 	{
 		var providerOption = new Option<ListProvider>(
@@ -102,6 +102,8 @@ class Program
 
 			var choice = AnsiConsole.Prompt(new SelectionPrompt<Anime>().AddChoices(choices));
 			Logger.Info($"Choose: {choice}");
+            Logger.Debug("Adding to the database");
+            Db.Add(new MalSeries { ProviderId = choice.Id });
 		}, providerOption, queryArgument);
 
 		var rootCommand = new RootCommand(
@@ -112,6 +114,7 @@ class Program
 		};
 		
 		await rootCommand.InvokeAsync(args);
+        Db.SaveChanges();
 		config.Save();
 		return;
 	}
