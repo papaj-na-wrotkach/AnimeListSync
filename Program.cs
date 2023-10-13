@@ -3,14 +3,17 @@ using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace AnimeListSync;
 
-public enum ListProvider
+public enum ListProvider : byte
 {
+	[Description("MyAnimeList (https://myanimelist.net)")]
 	MyAnimeList,
+	[Description("Shinden (https://shinden.pl)")]
 	Shinden
 }
 
@@ -18,32 +21,80 @@ class Program
 {
 	private static readonly Config config = Config.FromFile();
 	public static MalClient MalClient { get; set; } = new ();
-    public static readonly Database Db = new();
+	public static readonly Database Db = new();
 	static async Task Main(params string[] args)
 	{
-		var providerOption = new Option<ListProvider>(
-			name: "--provider",
-			description: "List provider to use",
-			getDefaultValue: () => ListProvider.MyAnimeList)
+		var queryArgument = new Argument<List<string>>(
+			name: "query",
+			description: "Search query")
 		{
-			Arity = ArgumentArity.ExactlyOne,
-			AllowMultipleArgumentsPerToken = false,
-			IsRequired = false
+			Arity = ArgumentArity.OneOrMore
 		};
-		providerOption.AddAlias("-p");
+
+		var assocCommand = new Command(
+			name: "assoc",
+			description: "Associate a series between providers")
+		{
+			queryArgument
+		};
+
+		assocCommand.SetHandler(async (List<string> queries) =>
+		{
+			Logger.Trace("Search keywords: [[");
+			foreach (var keyword in queries)
+			{
+				Logger.Trace($"\t{keyword},");
+			}
+			Logger.Trace("]]");
+			
+			var databaseAnime = new Database.DatabaseAnime();
+			Db.Add(databaseAnime);
+
+			foreach (ListProvider provider in typeof(ListProvider).GetEnumValues())
+			{
+				Logger.Info($"Searching using {provider}");
+				IEnumerable<Anime> choices;
+				switch (provider)
+				{
+					case ListProvider.Shinden: continue;// throw new NotImplementedException();
+					case ListProvider.MyAnimeList or _:
+						MalClient.SetAuth(config.MyAnimeList);
+						choices = (
+							from search in await Task.WhenAll(from query in queries select MalClient.Anime().WithName(query).Find())
+							from series in search.Data group series by series.Id into grouped orderby grouped.Count() descending
+							from series in grouped select series
+						).DistinctBy(series => series.Id);
+					break;
+					
+				};
+				
+				var choice = AnsiConsole.Prompt(new SelectionPrompt<Anime>()
+					{
+						Title = $"Choose a {provider} series",
+						Converter = anime => $"[link=https://myanimelist.net/anime/{anime.Id}]{anime.Title}[/]"
+					}
+					.AddChoices(choices));
+				Logger.Info($"Choose: {choice}");
+				var providerAnime = new Database.ProviderAnime()
+				{
+					Id = choice.Id,
+					Provider = provider
+				};
+				Db.Add(providerAnime);
+				Db.Add<Database.AnimeAssociation>(new()
+				{
+					Database = databaseAnime,
+					Provider = providerAnime
+				});
+			}
+		}, queryArgument);
+
 
 		var providerArgument = new Argument<ListProvider>(
 			name: "provider",
 			description: "List provider to use")
 		{
 			Arity = ArgumentArity.ZeroOrOne,
-		};
-
-		var queryArgument = new Argument<List<string>>(
-			name: "query",
-			description: "Search query")
-		{
-			Arity = ArgumentArity.OneOrMore
 		};
 
 		var authCommand = new Command(
@@ -67,50 +118,11 @@ class Program
 			}
 		}, providerArgument);
 
-		var searchCommand = new Command(
-			name: "search",
-			description: "Search for a anime series")
-		{
-			queryArgument,
-			providerOption
-		};
-
-		searchCommand.SetHandler(async (ListProvider provider, List<string> queries) =>
-		{
-			IEnumerable<Anime> choices;
-			Logger.Info($"Searching using {provider}");
-			Logger.Trace("Search keywords: [[");
-			foreach (var keyword in queries)
-			{
-				Logger.Trace($"\t{keyword},");
-			}
-			Logger.Trace("]]");
-
-			switch (provider)
-			{
-				case ListProvider.Shinden: throw new NotImplementedException();
-				case ListProvider.MyAnimeList or _:
-					MalClient.SetAuth(config.MyAnimeList);
-					choices = (
-						from search in await Task.WhenAll(from query in queries select MalClient.Anime().WithName(query).Find())
-						from series in search.Data group series by series.Id into grouped orderby grouped.Count() descending
-						from series in grouped select series
-					).DistinctBy(series => series.Id);
-				break;
-				
-			};
-
-			var choice = AnsiConsole.Prompt(new SelectionPrompt<Anime>().AddChoices(choices));
-			Logger.Info($"Choose: {choice}");
-            Logger.Debug("Adding to the database");
-            Db.Add(new MalSeries { ProviderId = choice.Id });
-		}, providerOption, queryArgument);
-
 		var rootCommand = new RootCommand(
 			description: "A fire-and-forget CLI app allowing users to sync their anime and manga lists between multiple providers")
 		{
+			assocCommand,
 			authCommand,
-			searchCommand
 		};
 		
 		await rootCommand.InvokeAsync(args);
