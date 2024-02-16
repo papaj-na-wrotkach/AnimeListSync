@@ -24,5 +24,5 @@ public class ProviderSeriesEntity : IIndetifiable<long>
 	[NotNull]
 	public string IdFromProvider { get; set; } = null!;
 
-	public override string ToString() => JsonSerializer.Serialize(this);
+	// public override string ToString() => JsonSerializer.Serialize(this);
 }

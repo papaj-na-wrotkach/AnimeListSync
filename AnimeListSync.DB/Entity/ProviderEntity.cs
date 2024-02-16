@@ -41,5 +41,5 @@ public class ProviderEntity : IIndetifiable<byte>
 	public static implicit operator ProviderEntity(Provider @enum) => new(@enum);
 
 	public static implicit operator Provider(ProviderEntity provider) => (Provider)provider.Id;
-	public override string ToString() => JsonSerializer.Serialize(this);
+	// public override string ToString() => JsonSerializer.Serialize(this);
 }

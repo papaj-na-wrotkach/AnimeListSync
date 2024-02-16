@@ -1,5 +1,5 @@
 ﻿using System.CommandLine;
-using AnimeListSync.CLI.CommandModule;
+using AnimeListSync.CLI.Commands;
 using AnimeListSync.Config;
 using AnimeListSync.DB;
 
@@ -13,9 +13,10 @@ class Program
 	static async Task Main(params string[] args)
 	{
 		Db.Database.EnsureCreated();
+		var seriesCommand = new InternalSeriesCommand("series", Db.InternalSeriesSet);
 		var rootCommand = new RootCommand
 		{
-			new InternalSeriesCommand(Db).Command
+			seriesCommand
 		};
 
 		await rootCommand.InvokeAsync(args);

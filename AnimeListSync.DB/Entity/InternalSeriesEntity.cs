@@ -16,5 +16,5 @@ public class InternalSeriesEntity : IIndetifiable<long>
 	[NotNull, CrudEditable(true)]
 	public string Description { get; set; } = null!;
 
-	public override string ToString() => JsonSerializer.Serialize(this);
+	// public override string ToString() => JsonSerializer.Serialize(this);
 }
