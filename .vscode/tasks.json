@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/AnimeListSync.csproj",
+                "${workspaceFolder}/AnimeListSync.CLI/AnimeListSync.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -19,7 +19,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/AnimeListSync.csproj",
+                "${workspaceFolder}/AnimeListSync.CLI/AnimeListSync.CLI.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -33,7 +33,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/AnimeListSync.csproj"
+                "${workspaceFolder}/AnimeListSync.CLI/AnimeListSync.CLI.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
