@@ -2,5 +2,5 @@ namespace AnimeListSync.DB;
 
 public interface IIndetifiable<TId>
 {
-	public abstract TId Id { get; }
+	public TId Id { get; set; }
 }

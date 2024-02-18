@@ -13,7 +13,7 @@ class Program
 	static async Task Main(params string[] args)
 	{
 		Db.Database.EnsureCreated();
-		var seriesCommand = new InternalSeriesCommand("series", Db.InternalSeriesSet);
+		var seriesCommand = new InternalSeriesCommand(Db.InternalSeriesSet, "series");
 		var rootCommand = new RootCommand
 		{
 			seriesCommand

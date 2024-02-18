@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 
 namespace AnimeListSync.DB.Entity;
 
@@ -41,5 +40,4 @@ public class ProviderEntity : IIndetifiable<byte>
 	public static implicit operator ProviderEntity(Provider @enum) => new(@enum);
 
 	public static implicit operator Provider(ProviderEntity provider) => (Provider)provider.Id;
-	// public override string ToString() => JsonSerializer.Serialize(this);
 }

@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace AnimeListSync.DB.Entity;
@@ -23,6 +22,4 @@ public class ProviderSeriesEntity : IIndetifiable<long>
 
 	[NotNull]
 	public string IdFromProvider { get; set; } = null!;
-
-	// public override string ToString() => JsonSerializer.Serialize(this);
 }
